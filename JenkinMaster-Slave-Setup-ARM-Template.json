@@ -1,0 +1,467 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "centralindia",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "virtualNetworkName": {
+            "defaultValue": "vNet2",
+            "type": "string",
+            "metadata": {
+                "description": "The name of New Virtual Machine vNet."
+            }
+        },
+        "virtualNetworksSubnetName": {
+            "defaultValue": "Lab2",
+            "type": "string",
+            "metadata": {
+                "description": "The name of New Virtual Machine subnet."
+            }
+        },
+        "jenkinsMasterVirtualMachineName": {
+            "defaultValue": "Master-Jenkins",
+                "type": "string",
+                "metadata": {
+                    "description": "The name of Jenkins Master Virtual Machine."
+                }
+        },
+        "slaveVirtualMachineName": {
+            "defaultValue": "Slave2-1",
+            "type": "string",
+            "metadata": {
+            "description": "The name of Slave Virtual Machine."
+            }
+        },
+        "sshPublicKeysMasterKeyName": {
+            "defaultValue": "Master-key-2",
+            "type": "string",
+            "metadata": {
+                "description": "The name of Virtual Machine key file."
+            }
+        }
+    },
+    "variables": {
+        "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+        },
+        "fVirtualNetworksSubnetName":"[format('{0}/{1}', parameters('virtualNetworkName'), parameters('virtualNetworksSubnetName'))]",
+        "networkInterfaceName": "[format('{0}_594_z1', parameters('jenkinsMasterVirtualMachineName'))]",
+        "networkInterfaces_externalid":"[format('resourceId(''Microsoft.Network/networkInterfaces/{0}_594_z1_externalid''', parameters('jenkinsMasterVirtualMachineName'))]",
+        "publicIpAddressName": "[format('{0}-ip', parameters('jenkinsMasterVirtualMachineName'))]",
+        "dnsLabelPrefix": "[toLower(format('{0}srv', parameters('jenkinsMasterVirtualMachineName')))]",
+        "networkSecurityGroupName":"[format('{0}-nsg', parameters('jenkinsMasterVirtualMachineName'))]",
+        "slaveNetworkInterfaceName": "[format('{0}_594_z1', parameters('slaveVirtualMachineName'))]",
+        "slaveNetworkInterfaces_externalid":"[format('resourceId(''Microsoft.Network/networkInterfaces/{0}_594_z1_externalid''', parameters('jenkinsMasterVirtualMachineName'))]",
+        "slavePublicIpAddressName": "[format('{0}-ip', parameters('slaveVirtualMachineName'))]",
+        "slaveNetworkSecurityGroupName":"[format('{0}-nsg', parameters('slaveVirtualMachineName'))]",
+        "osDiskType": "Standard_LRS",
+        "subnetAddressPrefix": "10.1.0.0/24",
+        "addressPrefix": "10.1.0.0/16",
+        "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+                    "publicKeys": [
+                        {
+                        "path": "/home/azureuser/.ssh/authorized_keys",
+                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDcbmzSp0v8hmyP9IhSMyGPnRRxmU8EqaNfQfOHGovNv0Lzyvo4gKcpMLTR2NJywSsJ+AWhY0IbeC0T+eWiZFKerv6bu8BwIAdWzrOxe1+PZutsZq30lSlrQkGvrZBxWU3+9505BtN/X9W5pEeyV4GZhjor9d2RzeGUdrHTo51goKo0oqxpAuRCvzPMCFLvjqYGwEtVxb9GSyG4p98SCxGGNX2xRrm+xkiBahf284SYtu6p6T9XmQjv/0SuGbi4DVfWUoMMjado6nr3UFx3VDOyXWXuaYXxU0zZBEtSwdWcTP23Y/9By6ljXnRySNxu5hbnxalxG+pwG0vLMXZfsNeymuh/WLQGLr7EnBkKBXbqPWM+oY9Ux0C8lwh5/mOpJJCviClLFB2Lehgyvv8cHB4Lj0sblM4n0/9Zl6o40I3biR8TcuXT/Ul3fOFMFyXEiP9FzLJpUG2SXwjaZOkwfO24LSU56A/9KwdDIEemsGfubqrxAxnxGzjFxFimbPZlUDk= generated-by-azure"
+                        }
+                    ]
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2023-05-01",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                "addressPrefixes": [
+                    "[variables('addressPrefix')]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-05-01",
+            "name": "[variables('fVirtualNetworksSubnetName')]",
+            "properties": {
+                "addressPrefix": "[variables('subnetAddressPrefix')]",
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2023-05-01",
+            "name": "[variables('networkInterfaceName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('virtualNetworksSubnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+            ],
+            "tags": {
+                "Jenkins": "Master"
+            },
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('virtualNetworksSubnetName'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]",
+                                "properties": {
+                                    "deleteOption": "Delete"
+                                }
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('networkInterfaces_externalid')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2023-05-01",
+            "name": "[variables('slaveNetworkInterfaceName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('slavePublicIpAddressName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('virtualNetworksSubnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('slaveNetworkSecurityGroupName'))]"
+            ],
+            "tags": {
+                "Jenkins": "Slave"
+            },
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('virtualNetworksSubnetName'))]"
+                              },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('slavePublicIpAddressName'))]",
+                                "properties": {
+                                    "deleteOption": "Delete"
+                                }
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('slaveNetworkInterfaces_externalid')]"
+                }
+            }
+        },    
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2023-05-01",
+            "name": "[variables('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "tags": {
+                "Jenkins": "Master"
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('dnsLabelPrefix')]"
+                    },
+                "idleTimeoutInMinutes": 4
+                }
+      },
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2023-05-01",
+        "name": "[variables('networkSecurityGroupName')]",
+        "location": "[parameters('location')]",
+        "tags": {
+            "Jenkins": "Master"
+        },
+        "properties": {
+            "securityRules": [
+                {
+                    "name": "SSH",
+                    "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                    "properties": {
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "22",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 300,
+                        "direction": "Inbound"
+                    }
+                },
+                {
+                    "name": "Jenkins-Master",
+                    "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                    "properties": {
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "8080",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 310,
+                        "direction": "Inbound"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2023-05-01",
+        "name": "[variables('slavePublicIPAddressName')]",
+        "location": "[parameters('location')]",
+        "tags": {
+            "Jenkins": "Slave"
+        },
+        "sku": {
+            "name": "Standard",
+            "tier": "Regional"
+        },
+        "zones": [
+            "1"
+        ],
+        "properties": {
+            "publicIPAddressVersion": "IPv4",
+            "publicIPAllocationMethod": "Static",
+            "idleTimeoutInMinutes": 4
+        }
+    },
+    {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2023-05-01",
+        "name": "[variables('slaveNetworkSecurityGroupName')]",
+        "location": "[parameters('location')]",
+        "tags": {
+            "Jenkins": "Slave"
+        },
+        "properties": {
+            "securityRules": [
+                {
+                    "name": "SSH",
+                    "properties": {
+                        "protocol": "Tcp",
+                        "sourcePortRange": "*",
+                        "destinationPortRange": "22",
+                        "sourceAddressPrefix": "*",
+                        "destinationAddressPrefix": "*",
+                        "access": "Allow",
+                        "priority": 300,
+                        "direction": "Inbound"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "type": "Microsoft.Compute/sshPublicKeys",
+        "apiVersion": "2023-03-01",
+        "name": "[parameters('sshPublicKeysMasterKeyName')]",
+        "location": "[parameters('location')]",
+        "tags": {
+            "Jenkins": "Master"
+        },
+        "properties": {
+            "publicKey": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDcbmzSp0v8hmyP9IhSMyGPnRRxmU8EqaNfQfOHGovNv0Lzyvo4gKcpMLTR2NJywSsJ+AWhY0IbeC0T+eWiZFKerv6bu8BwIAdWzrOxe1+PZutsZq30lSlrQkGvrZBxWU3+9505BtN/X9W5pEeyV4GZhjor9d2RzeGUdrHTo51goKo0oqxpAuRCvzPMCFLvjqYGwEtVxb9GSyG4p98SCxGGNX2xRrm+xkiBahf284SYtu6p6T9XmQjv/0SuGbi4DVfWUoMMjado6nr3UFx3VDOyXWXuaYXxU0zZBEtSwdWcTP23Y/9By6ljXnRySNxu5hbnxalxG+pwG0vLMXZfsNeymuh/WLQGLr7EnBkKBXbqPWM+oY9Ux0C8lwh5/mOpJJCviClLFB2Lehgyvv8cHB4Lj0sblM4n0/9Zl6o40I3biR8TcuXT/Ul3fOFMFyXEiP9FzLJpUG2SXwjaZOkwfO24LSU56A/9KwdDIEemsGfubqrxAxnxGzjFxFimbPZlUDk= generated-by-azure"
+        }
+    },
+    {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2023-03-01",
+        "name": "[parameters('jenkinsMasterVirtualMachineName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+            "hardwareProfile": {
+                "vmSize": "Standard_B1s"
+            },
+            "storageProfile": {
+                "imageReference": "[variables('imageReference')]",
+                "osDisk": {
+                    "osType": "Linux",
+                    "name": "[concat(parameters('jenkinsMasterVirtualMachineName'), '_OsDisk_1_84bdab3b2c444fb8ae632a9255187886')]",
+                    "createOption": "FromImage",
+                    "caching": "ReadWrite",
+                    "managedDisk": {
+                        "storageAccountType": "StandardSSD_LRS"
+                    },
+                    "deleteOption": "Delete",
+                    "diskSizeGB": 30
+                },
+                "diskControllerType": "SCSI"
+            },
+            "osProfile": {
+                "computerName": "[parameters('jenkinsMasterVirtualMachineName')]",
+                "adminUsername": "azureuser",
+                "linuxConfiguration":  "[variables('linuxConfiguration')]"
+            },
+            "userData": "[base64(variables('userData'))]",
+            "networkProfile": {
+                 "networkInterfaces": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
+                        "properties": {
+                            "deleteOption": "Delete"
+                        }
+                    }
+                ]
+            }
+        },
+        "tags": {
+           "Jenkins": "Master"
+        },
+        "zones": [
+           "1"
+        ],
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/networkInterfaces',variables('networkInterfaceName'))]"
+        ]
+    },
+    {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2023-03-01",
+        "name": "[parameters('slaveVirtualMachineName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+           "hardwareProfile": {
+              "vmSize": "Standard_B1s"
+            },
+           "storageProfile": {
+                "imageReference": "[variables('imageReference')]",
+                "osDisk": {
+                    "osType": "Linux",
+                    "name": "[concat(parameters('slaveVirtualMachineName'), '_OsDisk_1_d614271cb70943d2970fc3df93dad750')]",
+                    "createOption": "FromImage",
+                    "caching": "ReadWrite",
+                    "managedDisk": {
+                        "storageAccountType": "StandardSSD_LRS"
+                    },
+                    "deleteOption": "Delete",
+                    "diskSizeGB": 30
+                },
+                "diskControllerType": "SCSI"
+            },
+            "osProfile": {
+                "computerName": "[parameters('slaveVirtualMachineName')]",
+                "adminUsername": "azureuser",
+                "linuxConfiguration": "[variables('linuxConfiguration')]"
+            },
+            "networkProfile": {
+                "networkInterfaces": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('slaveNetworkInterfaceName'))]",
+                     "properties": {
+                        "deleteOption": "Delete"
+                     }
+                    }
+                ]
+            }
+        },
+        "tags": {
+            "Jenkins": "Slave"
+        },
+        "zones": [
+           "1"
+        ],
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/networkInterfaces', variables('slaveNetworkInterfaceName'))]"
+        ]
+    },
+   {
+        "type": "microsoft.devtestlab/schedules",
+        "apiVersion": "2018-09-15",
+        "name": "[concat('shutdown-computevm-',parameters('jenkinsMasterVirtualMachineName'))]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('jenkinsMasterVirtualMachineName'))]"
+        ],
+        "tags": {
+            "Jenkins": "Master"
+        },
+        "properties": {
+            "status": "Enabled",
+            "taskType": "ComputeVmShutdownTask",
+            "dailyRecurrence": {
+                "time": "2355"
+            },
+            "timeZoneId": "India Standard Time",
+            "notificationSettings": {
+                "status": "Enabled",
+                "timeInMinutes": 30,
+                "emailRecipient": "vaibhav.pavtekar@gmail.com",
+                "notificationLocale": "en"
+            },
+            "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('jenkinsMasterVirtualMachineName'))]"
+        }
+    },
+    {
+        "type": "microsoft.devtestlab/schedules",
+        "apiVersion": "2018-09-15",
+        "name": "[concat('shutdown-computevm-',parameters('slaveVirtualMachineName'))]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', parameters('slaveVirtualMachineName'))]"
+        ],
+        "tags": {
+            "Jenkins": "Slave"
+        },
+        "properties": {
+            "status": "Enabled",
+            "taskType": "ComputeVmShutdownTask",
+            "dailyRecurrence": {
+                "time": "2355"
+            },
+            "timeZoneId": "India Standard Time",
+            "notificationSettings": {
+                "status": "Enabled",
+                "timeInMinutes": 30,
+                "emailRecipient": "vaibhav.pavtekar@gmail.com",
+                "notificationLocale": "en"
+            },
+            "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('slaveVirtualMachineName'))]"
+        }
+    }
+  ]
+}
