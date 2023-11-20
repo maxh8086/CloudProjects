@@ -1,11 +1,23 @@
 #cloud-config
+apt:
+  sources:
+    source1:
+      source: "deb http://packages.chef.io/repos/apt/stable $RELEASE main"
+      key: |
+ 
+package_update: true
+packages:
+ - fontconfig
+ - openjdk-17-jre
 runcmd:
-  - sudo apt update
-  - sudo apt install fontconfig openjdk-17-jre -y
-  - sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-  - echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-  - sudo apt-get update
-  - sudo apt-get install jenkins -y
-  - sudo ufw allow 22/tcp
-  - sudo ufw allow 8080/tcp
-  - echo "y" | sudo ufw enable
+  - [sh, sudo, apt, update]
+  - [sh, sudo, apt, install, fontconfig, openjdk-17-jre, -y]
+  - [sh, sudo, wget, -O, /usr/share/keyrings/jenkins-keyring.asc, https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key]
+  - [sh, echo, deb, [signed-by=/usr/share/keyrings/jenkins-keyring.asc], https://pkg.jenkins.io/debian-stable binary/, |, sudo, tee, /etc/apt/sources.list.d/jenkins.list, >, /dev/null]
+  - [sh, sudo, apt-get, update]
+  - [sh, sudo, apt-get, install, jenkins, -y]
+  - [sh, sudo, ufw, allow, 22/tcp]
+  - [sh, sudo, ufw, allow, 8080/tcp]
+  - [sh, echo, "y", |, sudo, ufw, enable]
+  - sudo echo "test" > /tmp/test1.txt
+  - echo "test without sudo" > /tmp/test2.txt
