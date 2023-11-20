@@ -335,7 +335,8 @@
             "osProfile": {
                 "computerName": "[parameters('jenkinsMasterVirtualMachineName')]",
                 "adminUsername": "azureuser",
-                "linuxConfiguration":  "[variables('linuxConfiguration')]"
+                "linuxConfiguration":  "[variables('linuxConfiguration')]",
+                "customData": "[base64(concat('#include\nhttps://github.com/maxh8086/CloudProjects/blob/main/JenkinMasters'))]"
             },
             "userData": "[base64(variables('userData'))]",
             "networkProfile": {
