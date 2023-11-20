@@ -140,7 +140,6 @@
                     }
                 ],
                 "networkSecurityGroup": {
-                    //"id": "[variables('networkInterfaces_externalid')]"
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
                 }
             }
@@ -181,7 +180,6 @@
                     }
                 ],
                 "networkSecurityGroup": {
-                    //"id": "[variables('slaveNetworkInterfaces_externalid')]"
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('slaveNetworkSecurityGroupName'))]"
                 }
             }
