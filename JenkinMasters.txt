@@ -1,10 +1,4 @@
 #cloud-config
-apt:
-  sources:
-    source1:
-      source: "deb http://packages.chef.io/repos/apt/stable $RELEASE main"
-      key: |
- 
 package_update: true
 packages:
  - fontconfig
