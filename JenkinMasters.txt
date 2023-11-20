@@ -1,26 +1,11 @@
-#cloud-config
+# cloud-config
 runcmd:
   - apt update
-  - apt install -y fontconfig openjdk-17-jre
-  - wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-
-  # Check if GPG key download is successful
-  - if [ $? -eq 0 ]; then
-      echo "GPG key downloaded successfully";
-    else
-      echo "Error downloading GPG key";
-      exit 1;  # Exit script if GPG key download fails
-    fi
-
-  # Add Jenkins repository to sources.list.d
-  - echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-
-  - apt-get update
-  - apt-get install -y jenkins
-
-  # Allow incoming connections in the firewall
+  - sudo apt install fontconfig openjdk-17-jre -y
+  - sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+  - echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+  - sudo apt-get update
+  - sudo apt-get install jenkins -y
   - ufw allow 22/tcp
   - ufw allow 8080/tcp
-
-  # Enable the firewall
-  - echo "y" | ufw enable
+  - echo "y" | sudo ufw enable
