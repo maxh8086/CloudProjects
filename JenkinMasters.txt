@@ -1,7 +1,10 @@
 # cloud-config
+
 package_update: true
 packages:
   - openjdk-17-jre
+
 runcmd:
+  - echo "deb http://security.ubuntu.com/ubuntu focal-security main" >> /etc/apt/sources.list
   - apt update
   - apt-get install -y openjdk-17-jre
