@@ -5,7 +5,6 @@ write_files:
     permissions: '0644'
     content: |
       -----BEGIN PGP PUBLIC KEY BLOCK-----
-
       mQINBGQhzisBEAC7yUhIqVCcyCXJWeZZf/BA6/+KguDQpycck0xUomj5ogT1+lwJ
       Mnr6XsPFdTt5DgzjHKg6SM8PTIpLpzOcpqIG9eB8MnvtTp6qFSfIdZnEZccTot1e
       cArnM2H6yw/4OW+8QHx9Zgj1miiqolVZ1RusHT3cvPdkF4GFTZnChiF0epd+6iKi
