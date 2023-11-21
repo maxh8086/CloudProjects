@@ -8,3 +8,4 @@ This ARM Template will Deploy below setup in ResourceGroup under same Location a
 - 1 Ubuntu VM with NIC
     - 1 Public IP
     - 1 NSG with port 22/Tcp
+    - private key for jenkins slave ssh authentication will be available at /home/jenkins/.ssh/id_rsa

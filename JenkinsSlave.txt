@@ -1,7 +1,14 @@
 #cloud-config
+users:
+ - name: jenkins
+   gecos: jenkins slave user
+   sudo: ALL=(ALL) NOPASSWD:ALL
+   shell: /bin/bash
 package_update: true
 packages:
  - openjdk-17-jre
 runcmd:
  - apt update
  - apt-get install -y openjdk-17-jre
+ - [sh, -c, 'ssh-keygen -f /home/jenkins/.ssh/id_rsa -N ""']
+ - [sh, -c, "cat /home/jenkins/.ssh/id_rsa.pub >> authorized_keys"]
