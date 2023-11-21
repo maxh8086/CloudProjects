@@ -6,11 +6,11 @@ packages:
 runcmd:
  - apt update
  - apt-get install -y openjdk-17-jre
- - sh -c 'curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null'
- - sh -c 'echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null'
+ - sudo sh -c 'curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null'
+ - sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null'
  - apt-get install jenkins -y
  - ufw allow 22/tcp
  - ufw allow 8080/tcp
- - sh -c 'echo "y" | ufw enable'
+ - sudo sh -c 'echo "y" | ufw enable'
  - systemctl start jenkins
  - systemctl enable jenkins
