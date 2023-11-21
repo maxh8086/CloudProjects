@@ -1,9 +1,7 @@
-# cloud-config
-
+#cloud-config
 package_update: true
 packages:
-  - openjdk-17-jre
-
+ - openjdk-17-jre
 runcmd:
-  - apt update
-  - apt-get install -y openjdk-17-jre
+ - apt update
+ - apt-get install -y openjdk-17-jre
