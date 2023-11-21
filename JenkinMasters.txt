@@ -8,7 +8,7 @@ runcmd:
  - [sh, -c, 'echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null']
  - apt update
  - apt-get install -y openjdk-17-jre
- - apt-get install jenkins -y
+ - apt-get install -y jenkins
  - ufw allow 22/tcp
  - ufw allow 8080/tcp
  - sudo sh -c 'echo "y" | ufw enable'
