@@ -11,6 +11,6 @@ runcmd:
  - apt-get install -y jenkins
  - ufw allow 22/tcp
  - ufw allow 8080/tcp
- - sudo sh -c 'echo "y" | ufw enable'
+ - [sh, -c, 'echo "y" | ufw enable']
  - systemctl start jenkins
  - systemctl enable jenkins
