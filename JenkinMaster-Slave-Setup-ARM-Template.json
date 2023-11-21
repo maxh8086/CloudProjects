@@ -4,7 +4,7 @@
     "parameters": {
         "location": {
             "type": "string",
-            "defaultValue": "centralindia",
+            "defaultValue": "[resourceGroup().location]",
             "metadata": {
                 "description": "Location for all resources."
             }
@@ -31,14 +31,14 @@
                 }
         },
         "slaveVirtualMachineName": {
-            "defaultValue": "Slave2-1",
+            "defaultValue": "Slave1",
             "type": "string",
             "metadata": {
             "description": "The name of Slave Virtual Machine."
             }
         },
         "sshPublicKeysMasterKeyName": {
-            "defaultValue": "Master-key-2",
+            "defaultValue": "Master-key",
             "type": "string",
             "metadata": {
                 "description": "The name of Virtual Machine key file."
@@ -56,7 +56,7 @@
         "networkInterfaceName": "[format('{0}_594_z1', parameters('jenkinsMasterVirtualMachineName'))]",
         "networkInterfaces_externalid":"[format('resourceId(''Microsoft.Network/networkInterfaces/{0}_594_z1_externalid''', parameters('jenkinsMasterVirtualMachineName'))]",
         "publicIpAddressName": "[format('{0}-ip', parameters('jenkinsMasterVirtualMachineName'))]",
-        "dnsLabelPrefix": "[toLower(format('{0}srv', parameters('jenkinsMasterVirtualMachineName')))]",
+        "dnsLabelPrefix": "[toLower(format('{0}-{1}', parameters('jenkinsMasterVirtualMachineName'),resourceGroup().name))]",
         "networkSecurityGroupName":"[format('{0}-nsg', parameters('jenkinsMasterVirtualMachineName'))]",
         "slaveNetworkInterfaceName": "[format('{0}_594_z1', parameters('slaveVirtualMachineName'))]",
         "slaveNetworkInterfaces_externalid":"[format('resourceId(''Microsoft.Network/networkInterfaces/{0}_594_z1_externalid''', parameters('jenkinsMasterVirtualMachineName'))]",
@@ -386,7 +386,8 @@
             "osProfile": {
                 "computerName": "[parameters('slaveVirtualMachineName')]",
                 "adminUsername": "azureuser",
-                "linuxConfiguration": "[variables('linuxConfiguration')]"
+                "linuxConfiguration": "[variables('linuxConfiguration')]",
+                "customData": "[base64(concat('#include\nhttps://raw.githubusercontent.com/maxh8086/CloudProjects/main/JenkinsSlave.txt'))]"
             },
             "networkProfile": {
                 "networkInterfaces": [

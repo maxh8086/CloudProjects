@@ -1,1 +1,0 @@
-print("this is first py file in vs code workspace")
